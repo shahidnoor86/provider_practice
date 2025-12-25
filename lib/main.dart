@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:provider_practice/product_list.dart';
+import 'package:provider_practice/providers/product_provider.dart';
+import 'package:provider_practice/widgets/product_form.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(
+      MultiProvider(providers: [
+        ChangeNotifierProvider(create: (_) => Data()),
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
+      ], child: const MyApp()),
+    );
 
 // Provider
 /*class MyApp extends StatelessWidget {
@@ -30,7 +38,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<Data>(
+    var prodsList = context.watch<ProductProvider>().prodList;
+    return MaterialApp(
+      title: 'Flutter Demo',
+      home: Scaffold(
+        appBar: AppBar(
+          title: const MyText(),
+        ),
+        body: Column(
+          children: [
+            const Text(
+              "Product List from API",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              "Total Products: ${prodsList.length}",
+            ),
+            const SizedBox(height: 20),
+            const Level1(),
+          ],
+        ),
+      ),
+    );
+    /* return ChangeNotifierProvider<Data>(
       create: (_) => Data(),
       child: MaterialApp(
         title: 'Flutter Demo',
@@ -41,13 +71,30 @@ class MyApp extends StatelessWidget {
           body: const Level1(),
         ),
       ),
-    );
+    ); */
   }
 }
 
 // Provider
-class Level1 extends StatelessWidget {
+class Level1 extends StatefulWidget {
   const Level1({Key? key}) : super(key: key);
+
+  @override
+  State<Level1> createState() => _Level1State();
+}
+
+class _Level1State extends State<Level1> {
+  @override
+  void initState() {
+    getProducts();
+    super.initState();
+  }
+
+  getProducts() async {
+    final productProvider =
+        Provider.of<ProductProvider>(context, listen: false);
+    await productProvider.getProducts();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,9 +123,41 @@ class Level3 extends StatelessWidget {
     // Provider
     // String providedData = Provider.of<String>(context);
 
-    //ChangeNotifierProvider
-    String providedData = Provider.of<Data>(context).data;
-    return Text("Shahid Noor -> $providedData");
+    String providedData = context.watch<Data>().data;
+    return Column(
+      children: [
+        const Text("Level 3"),
+        const SizedBox(height: 20),
+        Text("Shahid Noor -> $providedData"),
+        const SizedBox(height: 20),
+        const ProductList(),
+        const Text("------------------ End of Product List ------------------"),
+        const SizedBox(height: 30),
+        ElevatedButton(
+            onPressed: () {
+              showAddDialog(context);
+            },
+            child: const Text("Add Product"))
+      ],
+    );
+  }
+
+  showAddDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Info"),
+            content: const ProductFormPage(),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("CLOSE"))
+            ],
+          );
+        });
   }
 }
 
